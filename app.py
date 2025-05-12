@@ -102,7 +102,7 @@ def upload():
 
         return f"PDF uploaded for {data['first_name']} {data['last_name']} (Confirmation: {data['confirmation_number']})"
 
-    return render_template("upload.html")
+    return render_template("portal.html")
 
 
 @app.route("/retrieve", methods=["GET", "POST"])
@@ -140,7 +140,7 @@ def retrieve():
         else:
             return "No matching PDF found."
 
-    return render_template("retrieve.html")
+    return render_template("portal.html")
 
 @app.route("/")
 def home():
