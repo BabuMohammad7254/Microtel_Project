@@ -3,6 +3,8 @@ import sqlite3
 import io
 import fitz  # PyMuPDF
 import re
+from flask import redirect
+
 
 app = Flask(__name__)
 
@@ -139,6 +141,10 @@ def retrieve():
             return "No matching PDF found."
 
     return render_template("retrieve.html")
+
+@app.route("/")
+def home():
+    return redirect("/portal")
 
 if __name__ == "__main__":
     app.run(debug=True)
