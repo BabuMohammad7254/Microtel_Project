@@ -14,8 +14,9 @@ def extract_data_from_pdf(file_bytes):
     text = ""
     for page in doc:
         text += page.get_text()
-    print("=== Extracted PDF Text ===")
-    print(text)
+    with open("extracted_text.txt", "w") as f:
+     f.write(text)
+
 
     data = {
         'confirmation_number': None,
@@ -49,9 +50,8 @@ def extract_data_from_pdf(file_bytes):
         match = re.search(pattern, text, re.IGNORECASE)
         if match:
             data[key] = match.group(1).strip()
-
-    print("=== Extracted Data ===")
-    print(data)
+    with open("extracted_text.txt", "w") as f:
+     f.write(text)
 
     return data
 
