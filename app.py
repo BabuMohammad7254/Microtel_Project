@@ -56,9 +56,11 @@ def extract_data_from_pdf(file_bytes):
     return data
 
 @app.route("/", methods=["GET", "POST"])
-def upload():
+def portal():
     if request.method == "POST":
-        if request.form.get("action") == "upload":
+        action = request.form.get("action")
+        
+        if action == "upload":
             file = request.files.get("pdf")
             if not file:
                 return "No file uploaded.", 400
@@ -101,47 +103,42 @@ def upload():
             conn.close()
 
             return f"PDF uploaded for {data['first_name']} {data['last_name']} (Confirmation: {data['confirmation_number']})"
-        
-        # If action is not upload, skip this
-        return "Unknown form submission."
 
-    return render_template("portal.html")
+        elif action == "retrieve":
+            filters = {
+                'confirmation_number': request.form.get("confirmation_number"),
+                'first_name': request.form.get("first_name"),
+                'last_name': request.form.get("last_name")
+            }
 
+            query = "SELECT confirmation_number, first_name, last_name, pdf FROM documents WHERE 1=1"
+            params = []
 
-@app.route("/retrieve", methods=["GET", "POST"])
-def retrieve():
-    if request.method == "POST":
-        filters = {
-            'confirmation_number': request.form.get("confirmation_number"),
-            'first_name': request.form.get("first_name"),
-            'last_name': request.form.get("last_name")
-        }
+            for key, value in filters.items():
+                if value:
+                    query += f" AND {key} LIKE ?"
+                    params.append(f"%{value}%")
 
-        query = "SELECT confirmation_number, first_name, last_name, pdf FROM documents WHERE 1=1"
-        params = []
+            conn = sqlite3.connect('pdf_storage.db')
+            cursor = conn.cursor()
+            cursor.execute(query, params)
+            result = cursor.fetchone()
+            conn.close()
 
-        for key, value in filters.items():
-            if value:
-                query += f" AND {key} LIKE ?"
-                params.append(f"%{value}%")
+            if result:
+                confirmation_number, first_name, last_name, pdf_data = result
+                filename = f"{confirmation_number}_{first_name}_{last_name}.pdf"
+                return send_file(
+                    io.BytesIO(pdf_data),
+                    download_name=filename,
+                    as_attachment=False,
+                    mimetype='application/pdf'
+                )
+            else:
+                return "No matching PDF found."
 
-        conn = sqlite3.connect('pdf_storage.db')
-        cursor = conn.cursor()
-        cursor.execute(query, params)
-        result = cursor.fetchone()
-        conn.close()
-
-        if result:
-            confirmation_number, first_name, last_name, pdf_data = result
-            filename = f"{confirmation_number}_{first_name}_{last_name}.pdf"
-            return send_file(
-                io.BytesIO(pdf_data),
-                download_name=filename,
-                as_attachment=False,
-                mimetype='application/pdf'
-            )
         else:
-            return "No matching PDF found."
+            return "Unknown form action."
 
     return render_template("portal.html")
 
