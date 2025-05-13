@@ -58,49 +58,52 @@ def extract_data_from_pdf(file_bytes):
 @app.route("/", methods=["GET", "POST"])
 def upload():
     if request.method == "POST":
-        file = request.files.get("pdf")
-        if not file:
-            return "No file uploaded.", 400
+        if request.form.get("action") == "upload":
+            file = request.files.get("pdf")
+            if not file:
+                return "No file uploaded.", 400
 
-        file_bytes = file.read()
-        data = extract_data_from_pdf(file_bytes)
+            file_bytes = file.read()
+            data = extract_data_from_pdf(file_bytes)
 
-        if not data['confirmation_number']:
-            return "Confirmation Number not found in PDF."
+            if not data['confirmation_number']:
+                return "Confirmation Number not found in PDF."
 
-        conn = sqlite3.connect('pdf_storage.db')
-        cursor = conn.cursor()
+            conn = sqlite3.connect('pdf_storage.db')
+            cursor = conn.cursor()
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS documents (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    confirmation_number TEXT,
+                    first_name TEXT,
+                    last_name TEXT,
+                    room TEXT,
+                    arrival TEXT,
+                    departure TEXT,
+                    pdf BLOB
+                )
+            ''')
 
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS documents (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                confirmation_number TEXT,
-                first_name TEXT,
-                last_name TEXT,
-                room TEXT,
-                arrival TEXT,
-                departure TEXT,
-                pdf BLOB
-            )
-        ''')
+            cursor.execute('''
+                INSERT INTO documents (confirmation_number, first_name, last_name, room, arrival, departure, pdf)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                data['confirmation_number'],
+                data['first_name'],
+                data['last_name'],
+                data['room'],
+                data['arrival'],
+                data['departure'],
+                file_bytes
+            ))
 
-        cursor.execute('''
-            INSERT INTO documents (confirmation_number, first_name, last_name, room, arrival, departure, pdf)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            data['confirmation_number'],
-            data['first_name'],
-            data['last_name'],
-            data['room'],
-            data['arrival'],
-            data['departure'],
-            file_bytes
-        ))
+            conn.commit()
+            conn.close()
 
-        conn.commit()
-        conn.close()
-
-        return f"PDF uploaded for {data['first_name']} {data['last_name']} (Confirmation: {data['confirmation_number']})"
+            return f"PDF uploaded for {data['first_name']} {data['last_name']} (Confirmation: {data['confirmation_number']})"
+        
+        # If action is not upload, skip this
+        return "Unknown form submission."
 
     return render_template("portal.html")
 
