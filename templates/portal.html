@@ -1,32 +1,91 @@
-
 <!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"><title>Microtel Portal</title></head>
+<head>
+  <meta charset="UTF-8">
+  <title>Microtel Portal</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      padding: 40px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0;
+    }
+    h1 span {
+      display: block;
+      font-size: 1rem;
+      font-weight: normal;
+      color: #555;
+    }
+    form {
+      background-color: white;
+      padding: 25px;
+      margin: 30px auto;
+      max-width: 500px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      text-align: left;
+    }
+    input[type="file"],
+    input[type="text"],
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      background-color: #00539C;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #003f7d;
+    }
+    .section-title {
+      margin-bottom: 10px;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+  </style>
+</head>
 <body>
-<h1>Microtel by Wyndham</h1>
-<h2>Upload PDF</h2>
-<form method="post" enctype="multipart/form-data">
+
+  <h1>Microtel<br><span>by Wyndham</span></h1>
+
+  <form method="post" enctype="multipart/form-data">
+    <div class="section-title">Upload PDF</div>
     <input type="hidden" name="action" value="upload">
     <input type="file" name="pdf" required>
     <button type="submit">Upload</button>
-</form>
+  </form>
 
-<h2>Retrieve PDF</h2>
-<form method="post">
+  <form method="post">
+    <div class="section-title">Retrieve PDF</div>
     <input type="hidden" name="action" value="retrieve">
-    Confirmation Number: <input type="text" name="confirmation_number"><br>
-    First Name: <input type="text" name="first_name"><br>
-    Last Name: <input type="text" name="last_name"><br>
+    <label>Confirmation Number:</label>
+    <input type="text" name="confirmation_number">
+    <label>First Name:</label>
+    <input type="text" name="first_name">
+    <label>Last Name:</label>
+    <input type="text" name="last_name">
     <button type="submit">Retrieve</button>
-</form>
+  </form>
 
-{% if message %}
+  {% if message %}
     <p>{{ message }}</p>
-{% endif %}
+  {% endif %}
 
-{% if pdf_stream %}
+  {% if pdf_stream %}
     <iframe src="data:application/pdf;base64,{{ pdf_stream.read() | b64encode | decode('utf-8') }}"
             width="100%" height="600px"></iframe>
-{% endif %}
+  {% endif %}
+
 </body>
 </html>
