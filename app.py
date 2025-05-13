@@ -142,9 +142,7 @@ def retrieve():
 
     return render_template("portal.html")
 
-@app.route("/")
-def home():
-    return redirect("/portal")
+
 
 if __name__ == "__main__":
     app.run(debug=True)
